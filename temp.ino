@@ -1,70 +1,102 @@
-/*
-analogInPin-GND間に10kΩの接続推奨
-voltageが0.5以下の時はRGB全てLOW、オンボードのLEDが点灯。=センサー接続？
-実機でやって上だったらコード見直し
-*/
+#include <WiFiNINA.h>
 
-const int analogInPin = A0;
-const int red = 2;
-const int blue = 3;
-const int green = 4;
-const int led = 13;
+WiFiServer server(80);
+
+const int sensor = A0;
+
+const float v = 5.0;
+const int resolution = 1024;
+const float offset = 0.6;
+const float scale = 0.01;
 
 int sensorValue = 0;
-int outputValue = 0;
 float voltage = 0;
 float temp = 0;
 
 void setup() {
   Serial.begin(9600);
-  pinMode(red,OUTPUT);
-  pinMode(blue,OUTPUT);
-  pinMode(green,OUTPUT); 
-  pinMode(led,OUTPUT);
+  while (!Serial);
+
+  char ssid[50];
+  char password[50];
+
+  while (true) {
+    Serial.println("SSIDを入力してください:");
+    readInput(ssid, sizeof(ssid));
+
+    Serial.println("パスワードを入力してください:");
+    readInput(password, sizeof(password));
+
+    WiFi.begin(ssid, password);
+
+    Serial.println("接続中...");
+    unsigned long startTime = millis();
+    bool connected = false;
+
+    // 10秒間接続を試みる
+    while (millis() - startTime < 10000) {
+      if (WiFi.status() == WL_CONNECTED) {
+        connected = true;
+        break;
+      }
+      delay(100);  // 状態確認を少し待機
+    }
+
+    if (connected) {
+      Serial.println("WiFi接続完了！");
+      Serial.print("IPアドレス: ");
+      Serial.println(WiFi.localIP());
+      break;
+    } else {
+      Serial.println("WiFi接続失敗。もう一度入力してください。");
+      Serial.print("エラーコード: ");
+      Serial.println(WiFi.status());  // 接続失敗時のエラーコードを表示
+    }
+  }
+
+  server.begin();
 }
 
 void loop() {
-  sensorValue = analogRead(analogInPin);
-  
-  //tmp36の仕様
-  voltage = sensorValue*5.0/1023.0;
-  temp = (voltage-0.5)*100.0;
-  
-  if(temp>=25.0){
-    digitalWrite(red,HIGH);
-    digitalWrite(blue,LOW);
-    digitalWrite(green,LOW);
-    digitalWrite(led,LOW);
-  }else if(temp<25.0&&temp>=21.0){
-    digitalWrite(red,HIGH);
-    digitalWrite(blue,LOW);
-    digitalWrite(green,HIGH);
-    digitalWrite(led,LOW);
-  }else if(temp<21&&voltage>=0.5){
-    digitalWrite(red,LOW);
-    digitalWrite(blue,LOW);
-    digitalWrite(green,HIGH);
-    digitalWrite(led,LOW);
-  }else{
-    digitalWrite(red,LOW);
-    digitalWrite(blue,LOW);
-    digitalWrite(green,LOW);
-    digitalWrite(led,LOW);
-  }
-  
-  if(voltage<=0.5){
-    digitalWrite(led,HIGH);
-  }else{
-    digitalWrite(led,LOW);
-  }
+  WiFiClient client = server.available();
+  if (client) {
+    String request = client.readStringUntil('\r');
 
-  Serial.print("temp = ");
-  Serial.print(temp);
-  Serial.print("\nvoltage = ");
-  Serial.print(voltage);
-  Serial.print("\n");
-  Serial.print(sensorValue);
-  Serial.print("\n");
+    sensorValue = analogRead(sensor);
+    voltage = sensorValue * (v / resolution);
+    temp = (voltage - offset) / scale;
 
-  delay(5000);
+    client.println("HTTP/1.1 200 OK");
+    client.println("Content-Type: text/html");
+    client.println("Connection: close");
+    client.println();
+    client.println("<!DOCTYPE HTML>");
+    client.println("<html>");
+    client.println("<head>");
+    client.println("<meta charset=\"UTF-8\">");
+    client.println("<meta http-equiv='refresh' content='1'>");
+    client.println("<title>Temprature</title>");
+    client.println("</head>");
+    client.println("<body>");
+    client.println("<h1>現在の温度</h1>");
+    client.print("<p>");
+    client.print(temp);
+    client.println(" °C</p>");
+    client.println("</body>");
+    client.println("</html>");
+
+    client.stop();
+  }
+}
+
+void readInput(char* buffer, size_t length) {
+  size_t index = 0;
+  while (index < length - 1) {
+    if (Serial.available() > 0) {
+      char c = Serial.read();
+      if (c == '\n') break;
+      buffer[index++] = c;
+    }
+  }
+  buffer[index] = '\0';
 }
