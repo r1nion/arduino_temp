@@ -42,12 +42,12 @@ void setup() {
     }
 
     if (connected) {
-      Serial.println("success");
+      Serial.println("success.");
       Serial.print("IP addr: ");
       Serial.println(WiFi.localIP());
       break;
     } else {
-      Serial.println("WiFi接続失敗。もう一度入力してください。");
+      Serial.println("Failed. Try again.");
       Serial.print("error: ");
       Serial.println(WiFi.status());
     }
