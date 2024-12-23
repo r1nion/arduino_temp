@@ -4,10 +4,10 @@ WiFiServer server(80);
 
 const int sensor = A0;
 
-const float v = 5.0;
+const float v = 3.3;
 const int resolution = 1024;
-const float offset = 2.31;
-const float scale = 0.0385;
+const float offset = 1.2;
+const float scale = 0.02;
 
 int sensorValue = 0;
 float voltage = 0;
@@ -72,15 +72,18 @@ void loop() {
     client.println("<!DOCTYPE HTML>");
     client.println("<html>");
     client.println("<head>");
-    client.println("<meta charset=\"UTF-8\">");
-    client.println("<meta http-equiv='refresh' content='1'>");
-    client.println("<title>Temprature</title>");
+    client.println("<title>Temperature Monitor</title>");
+    client.println("<style>");
+    client.println("body { font-family: Arial, sans-serif; background-color: #f0f8ff; color: #333; text-align: center; }");
+    client.println(".temperature { color: #ff4500; font-size: 2em; }");
+    client.println("</style>");
     client.println("</head>");
     client.println("<body>");
-    client.println("<h1>現在の温度</h1>");
-    client.print("<p>");
+    client.println("<h1>Current Temperature</h1>");
+    client.print("<div class=\"temperature\">");
     client.print(temp);
-    client.println(" °C</p>");
+    client.println(" &deg;C</div>");
+    client.println("<footer>Powered by Arduino Nano 33 IoT</footer>");
     client.println("</body>");
     client.println("</html>");
 
