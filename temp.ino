@@ -21,36 +21,35 @@ void setup() {
   char password[50];
 
   while (true) {
-    Serial.println("SSIDを入力してください:");
+    Serial.println("SSID:");
     readInput(ssid, sizeof(ssid));
 
-    Serial.println("パスワードを入力してください:");
+    Serial.println("password:");
     readInput(password, sizeof(password));
 
     WiFi.begin(ssid, password);
 
-    Serial.println("接続中...");
+    Serial.println("connecting...");
     unsigned long startTime = millis();
     bool connected = false;
 
-    // 10秒間接続を試みる
     while (millis() - startTime < 10000) {
       if (WiFi.status() == WL_CONNECTED) {
         connected = true;
         break;
       }
-      delay(100);  // 状態確認を少し待機
+      delay(100);
     }
 
     if (connected) {
-      Serial.println("WiFi接続完了！");
-      Serial.print("IPアドレス: ");
+      Serial.println("success");
+      Serial.print("IP addr: ");
       Serial.println(WiFi.localIP());
       break;
     } else {
       Serial.println("WiFi接続失敗。もう一度入力してください。");
-      Serial.print("エラーコード: ");
-      Serial.println(WiFi.status());  // 接続失敗時のエラーコードを表示
+      Serial.print("error: ");
+      Serial.println(WiFi.status());
     }
   }
 
