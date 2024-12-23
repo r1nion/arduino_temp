@@ -6,8 +6,8 @@ const int sensor = A0;
 
 const float v = 5.0;
 const int resolution = 1024;
-const float offset = 0.6;
-const float scale = 0.01;
+const float offset = 2.31;
+const float scale = 0.0385;
 
 int sensorValue = 0;
 float voltage = 0;
