@@ -1,8 +1,8 @@
 #include <WiFi.h>
 
 // Wi-Fi設定を直接記述
-const char* ssid = "iPhoneXS";
-const char* password = "Bananaisgood";
+const char* ssid = "SSID";
+const char* password = "PassWord";
 
 WiFiServer server(80);
 
